@@ -1,7 +1,29 @@
-export const getRainfallPrediction = async () => {
-  const response = await fetch("http://127.0.0.1:5000/rainfall_prediction");
-  if (!response.ok) {
+import { supabase } from "@/integrations/supabase/client";
+
+export interface DayForecast {
+  date: string;
+  day: string;
+  rainfall_mm: number;
+  will_rain: boolean;
+  probability: number;
+  priority: string;
+}
+
+export interface RainfallPrediction {
+  forecast: DayForecast[];
+  overall_priority: string;
+  location: string;
+  generated_at: string;
+  model: string;
+}
+
+export const getRainfallPrediction = async (): Promise<RainfallPrediction> => {
+  const { data, error } = await supabase.functions.invoke('rainfall-prediction');
+  
+  if (error) {
+    console.error('Error fetching rainfall prediction:', error);
     throw new Error("Failed to fetch rainfall prediction");
   }
-  return response.json();
+  
+  return data as RainfallPrediction;
 };
