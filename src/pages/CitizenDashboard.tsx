@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Trash2, RefreshCw, AlertCircle, Plus, CloudRain } from 'lucide-react';
+import { Trash2, RefreshCw, AlertCircle, Plus } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { GarbageBinCard } from '@/components/GarbageBinCard';
+import { RainfallChart } from '@/components/RainfallChart';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { getRainfallPrediction } from '@/api/rainfall';
+import { getRainfallPrediction, DayForecast } from '@/api/rainfall';
 
 interface GarbageBin {
   id: string;
@@ -29,7 +29,7 @@ export default function CitizenDashboard() {
   const [filter, setFilter] = useState<'all' | 'residential' | 'commercial'>('all');
 
   /* 🌧 WEEKLY RAINFALL STATES */
-  const [forecast, setForecast] = useState<any[]>([]);
+  const [forecast, setForecast] = useState<DayForecast[]>([]);
   const [overallPriority, setOverallPriority] = useState("");
 
   useEffect(() => {
@@ -87,31 +87,10 @@ export default function CitizenDashboard() {
 
       <main className="container py-8">
 
-        {/* 🌧 WEEKLY RAIN FORECAST (CITIZEN VIEW) */}
-        <Card className="mb-8 border-blue-300 bg-blue-50">
-          <CardContent className="pt-6">
-            <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <CloudRain className="w-5 h-5" />
-              Weekly Rain Forecast (From Tomorrow)
-            </h2>
-
-            {forecast.length === 0 ? (
-              <p>Loading weather forecast...</p>
-            ) : (
-              forecast.map((day, index) => (
-                <p key={index}>
-                  <b>{day.day}, {day.date}</b> →{" "}
-                  {day.will_rain ? "🌧 Rain Expected" : "☀️ No Rain"} (
-                  {day.rainfall_mm} mm)
-                </p>
-              ))
-            )}
-
-            <p className="mt-3 text-sm text-muted-foreground">
-              ℹ️ Due to expected weather conditions, garbage collection may be delayed on rainy days.
-            </p>
-          </CardContent>
-        </Card>
+        {/* 🌧 WEEKLY RAIN FORECAST CHART */}
+        <div className="mb-8">
+          <RainfallChart forecast={forecast} overallPriority={overallPriority} />
+        </div>
 
         {/* QUICK ACTIONS */}
         <div className="grid md:grid-cols-2 gap-4 mb-8">

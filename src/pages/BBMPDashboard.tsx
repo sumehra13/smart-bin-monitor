@@ -13,13 +13,14 @@ import {
 import { Header } from '@/components/Header';
 import { GarbageBinCard } from '@/components/GarbageBinCard';
 import { AlertPanel } from '@/components/AlertPanel';
+import { RainfallChart } from '@/components/RainfallChart';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { predictOverflow } from '@/lib/prediction';
-import { getRainfallPrediction } from '@/api/rainfall';
+import { getRainfallPrediction, DayForecast } from '@/api/rainfall';
 
 interface GarbageBin {
   id: string;
@@ -56,7 +57,7 @@ export default function BBMPDashboard() {
   const [resolving, setResolving] = useState(false);
 
   /* ✅ WEEKLY RAINFALL STATES */
-  const [forecast, setForecast] = useState<any[]>([]);
+  const [forecast, setForecast] = useState<DayForecast[]>([]);
   const [overallPriority, setOverallPriority] = useState<string>("");
 
   useEffect(() => {
@@ -158,30 +159,10 @@ export default function BBMPDashboard() {
 
       <main className="container py-8">
 
-        {/* 🌧 WEEKLY RAINFALL CARD */}
-        <Card className="mb-8 border-blue-300 bg-blue-50">
-          <CardContent className="pt-6">
-            <h2 className="text-lg font-semibold mb-2">
-              🌧 Weekly Rain Forecast (From Tomorrow)
-            </h2>
-
-            {forecast.length === 0 ? (
-              <p>Loading weekly forecast...</p>
-            ) : (
-              forecast.map((day, index) => (
-                <p key={index}>
-                  <b>{day.day}, {day.date}</b> →{" "}
-                  {day.will_rain ? "🌧 Rain Expected" : "☀️ No Rain"} (
-                  {day.rainfall_mm} mm)
-                </p>
-              ))
-            )}
-
-            <p className="mt-3">
-              <b>Overall Smart Bin Priority: {overallPriority}</b>
-            </p>
-          </CardContent>
-        </Card>
+        {/* 🌧 WEEKLY RAINFALL CHART */}
+        <div className="mb-8">
+          <RainfallChart forecast={forecast} overallPriority={overallPriority} />
+        </div>
 
         {/* STATS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
