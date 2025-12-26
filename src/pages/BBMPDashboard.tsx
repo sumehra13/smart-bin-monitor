@@ -136,6 +136,40 @@ export default function BBMPDashboard() {
     }
   };
 
+  const handleResolveAlert = async (alertId: string, binId: string) => {
+    setResolving(true);
+    try {
+      // Update alert status to resolved
+      const { error: alertError } = await supabase
+        .from('alerts')
+        .update({ status: 'resolved', resolved_at: new Date().toISOString() })
+        .eq('id', alertId);
+
+      if (alertError) throw alertError;
+
+      // Reset bin garbage level to 0
+      const { error: binError } = await supabase
+        .from('garbage_bins')
+        .update({ 
+          current_garbage_level: 0, 
+          last_emptied_date: new Date().toISOString().split('T')[0] 
+        })
+        .eq('id', binId);
+
+      if (binError) throw binError;
+
+      toast.success('Alert resolved! Bin emptied and citizen notified.');
+      
+      // Refresh data
+      await fetchData();
+    } catch (error) {
+      toast.error('Failed to resolve alert');
+      console.error(error);
+    } finally {
+      setResolving(false);
+    }
+  };
+
   const criticalBins = bins.filter(b => predictOverflow(b).riskLevel === 'critical').length;
   const highRiskBins = bins.filter(b => predictOverflow(b).riskLevel === 'high').length;
   const activeAlerts = alerts.filter(a => a.status === 'active').length;
@@ -173,7 +207,7 @@ export default function BBMPDashboard() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          <AlertPanel alerts={alerts} onResolve={() => {}} loading={resolving} />
+          <AlertPanel alerts={alerts} onResolve={handleResolveAlert} loading={resolving} />
 
           <div className="lg:col-span-2">
             <div className="grid md:grid-cols-2 gap-4">
